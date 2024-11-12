@@ -11,22 +11,29 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # Update to latest version
 
     - name: Add SSH key
-      uses: webfactory/ssh-agent@v0.5.3
+      uses: webfactory/ssh-agent@v0.6.0  # Update to latest version
       with:
         ssh-private-key: ${{ secrets.SSH }}
 
     - name: Copy files to Azure VM
+      env:
+        VM_USERNAME: ${{ secrets.VM_USERNAME }}
+        VM_IP: ${{ secrets.VM_IP }}
       run: |
-        scp -o StrictHostKeyChecking=no -r . ${{ secrets.VM_USERNAME }}@${{ secrets.VM_IP }}:/home/${{ secrets.VM_USERNAME }}/app
+        scp -o StrictHostKeyChecking=no -r . $VM_USERNAME@$VM_IP:/home/$VM_USERNAME/app
 
     - name: Build and run Docker container on Azure VM
+      env:
+        VM_USERNAME: ${{ secrets.VM_USERNAME }}
+        VM_IP: ${{ secrets.VM_IP }}
+        TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.VM_USERNAME }}@${{ secrets.VM_IP }} << EOF
-          cd /home/${{ secrets.VM_USERNAME }}/app
-          docker build --build-arg TMDB_V3_API_KEY=${{ secrets.TMDB_API_KEY }} -t netflix-clone .
+        ssh -o StrictHostKeyChecking=no $VM_USERNAME@$VM_IP << EOF
+          cd /home/$VM_USERNAME/app
+          docker build --build-arg TMDB_V3_API_KEY=$TMDB_API_KEY -t netflix-clone .
           docker stop netflix-clone || true  # Stop any existing container
           docker rm netflix-clone || true    # Remove old container if exists
           docker run -d -p 8081:80 --name netflix-clone netflix-clone
