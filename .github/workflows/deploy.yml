@@ -33,6 +33,12 @@ jobs:
             cd app
             echo "Navigated to app directory"
 
+            # Check if Dockerfile exists
+            if [ ! -f Dockerfile ]; then
+              echo "Dockerfile not found in the app directory!"
+              exit 1
+            fi
+
             # Build Docker image
             docker build --build-arg TMDB_V3_API_KEY=05dfd6f37e1403412139893386ff723d -t netflix-clone .
             echo "Docker image built successfully"
