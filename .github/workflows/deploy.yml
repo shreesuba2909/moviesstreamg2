@@ -14,9 +14,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Build Docker image
+      # Change to the app directory and build the Docker image
       - name: Build Docker image
         run: |
+          cd app  # Navigate to the app directory
           docker build --build-arg TMDB_V3_API_KEY=05dfd6f37e1403412139893386ff723d -t netflix-clone .
         continue-on-error: false  # This ensures the build stops if Docker build fails
 
