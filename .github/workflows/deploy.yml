@@ -18,6 +18,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build --build-arg TMDB_V3_API_KEY=05dfd6f37e1403412139893386ff723d -t netflix-clone .
+        continue-on-error: false  # This ensures the build stops if Docker build fails
 
       # Set up SSH for Azure VM access (using the SSH key)
       - name: Set up SSH key
@@ -32,10 +33,14 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa azureuser@40.118.226.249 << 'EOF'
             # Navigate to the project directory
             cd moviesstreamg2
+            echo "Successfully SSH'd into Azure VM"
             
             # Set the secret in Azure KeyVault (optional)
             az keyvault secret set --vault-name key --name "TMDB_API_KEY" --value "05dfd6f37e1403412139893386ff723d"
-            
+            echo "TMDB_API_KEY secret set in KeyVault"
+
             # Run the Docker container
             docker run -d -p 8081:80 netflix-clone
+            echo "Docker container running"
           EOF
+        continue-on-error: false  # This ensures the pipeline stops if the SSH or Docker command fails
