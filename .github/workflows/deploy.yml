@@ -43,8 +43,8 @@ jobs:
             docker build --build-arg TMDB_V3_API_KEY=05dfd6f37e1403412139893386ff723d -t netflix-clone .
             echo "Docker image built successfully"
 
-            # Run the Docker container on the Azure VM on port 8080
-            docker run -d -p 8080:80 netflix-clone
-            echo "Docker container running on port 8080"
+            # Run the Docker container on the Azure VM
+            docker run -d -p 8081:80 netflix-clone
+            echo "Docker container running"
 
           EOF
