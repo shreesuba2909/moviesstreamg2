@@ -1,55 +1,29 @@
-name: Deploy to Azure VM using Docker
+name: Deploy to Azure VM
 
 on:
   push:
     branches:
-      - main  # You can change this to your branch, e.g., 'master' or 'production'
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout code from the repository
-    - name: Checkout code
-      uses: actions/checkout@v2
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # Step 2: Set up SSH keys for authentication
-    - name: Add SSH key
-      uses: webfactory/ssh-agent@v0.6.0
-      with:
-        ssh-private-key: ${{ secrets.VM_SSH_KEY}}
+      # Set up SSH agent
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.6.0
+        with:
+          ssh-private-key: ${{ secrets.VM_SSH_KEY }}
 
-    # Step 3: Set up Node.js (optional if you're using Node.js for the build)
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '16' # Adjust this based on your app's requirements
-
-    # Step 4: Install dependencies (if needed for Node.js or other dependencies)
-    - name: Install dependencies
-      run: |
-        npm install
-        # Or if you're using a different language, adjust accordingly
-        # e.g., for Python: pip install -r requirements.txt
-
-    # Step 5: Build Docker image with TMDB API key
-    - name: Build Docker image
-      run: |
-        docker build --build-arg TMDB_V3_API_KEY=${{ secrets.TMDB_API_KEY }} -t netflix-clone .
-
-    # Step 6: SSH into VM and deploy the application
-    - name: SSH and deploy to VM
-      run: |
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa azureuser@${{ secrets.VM_IP }} << 'EOF'
-          # Stop any existing Docker containers if they exist
-          docker stop netflix-clone || true
-          docker rm netflix-clone || true
-          
-          # Run the new Docker container with the Netflix clone
-          docker run -d -p 8081:80 netflix-clone
-        EOF
-      env:
-        VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
-        VM_IP: ${{ secrets.VM_IP }}
-        VM_USERNAME: ${{ secrets.VM_USERNAME }}
+      # Deploy the app
+      - name: SSH to the server and run docker commands
+        run: |
+          ssh -vvv -o StrictHostKeyChecking=no azureuser@${{ secrets.VM_IP }} << 'EOF'
+            docker build --build-arg TMDB_V3_API_KEY=${{ secrets.TMDB_API_KEY }} -t netflix-clone .
+            docker run -d -p 8081:80 netflix-clone
+          EOF
