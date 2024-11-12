@@ -18,7 +18,7 @@ jobs:
     - name: Add SSH key
       uses: webfactory/ssh-agent@v0.6.0
       with:
-        ssh-private-key: ${{ secrets.SSH}}
+        ssh-private-key: ${{ secrets.VM_SSH_KEY}}
 
     # Step 3: Set up Node.js (optional if you're using Node.js for the build)
     - name: Set up Node.js
