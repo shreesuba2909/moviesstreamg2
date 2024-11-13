@@ -44,7 +44,7 @@ jobs:
             echo "Docker image built successfully"
 
             # Run the Docker container on the Azure VM on port 9999
-            docker run -d -p 8080:9999 --name netflix-clone-v3 netflix-clone
+            docker run -d -p 8081:9999 --name netflix-clone-v4 netflix-clone
             echo "Docker container running on port 9999"
 
           EOF
