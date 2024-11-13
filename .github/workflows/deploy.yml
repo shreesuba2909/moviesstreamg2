@@ -1,0 +1,50 @@
+name: Docker Build and Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up SSH key for VM access
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AZURE_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      # SSH into the Azure VM, navigate to the directories, and deploy Docker container
+      - name: SSH into Azure VM and deploy Docker container
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa azureuser@40.118.226.249 << 'EOF'
+            # Navigate to the moviesstreamg2 directory
+            cd moviesstreamg2
+            echo "Navigated to moviesstreamg2 directory"
+
+            # Navigate to the app directory where Dockerfile is located
+            cd app
+            echo "Navigated to app directory"
+
+            # Check if Dockerfile exists
+            if [ ! -f Dockerfile ]; then
+              echo "Dockerfile not found in the app directory!"
+              exit 1
+            fi
+
+            # Build Docker image
+            docker build --build-arg TMDB_V3_API_KEY=05dfd6f37e1403412139893386ff723d -t netflix-clone .
+            echo "Docker image built successfully"
+
+            # Run the Docker container on the Azure VM on port 9999
+            docker run -d -p 8080:9999 --name netflix-clone-v3 netflix-clone
+            echo "Docker container running on port 9999"
+
+          EOF
